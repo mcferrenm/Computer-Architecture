@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "cpu.h"
 
 #define DATA_LEN 6
@@ -55,7 +56,7 @@ void cpu_run(struct cpu *cpu)
     ir = cpu_ram_read(cpu, cpu->pc);
 
     // 2. Figure out how many operands this next instruction requires
-    int op_count = strtol(ir & 0b11000000 >> 6, NULL, 2);
+    int op_count = ir & 0b11000000 >> 6;
 
     // 3. Get the appropriate value(s) of the operands following this instruction
     for (int i = 1; i < op_count + 1; i++) { // skip the current
@@ -66,7 +67,9 @@ void cpu_run(struct cpu *cpu)
     switch(ir) {
       case LDI:
         // Set register at first operand to value of second operand
-        cpu->registers[strtol(operands[0], NULL, 2)] = strtol(operands[1], NULL, 2);
+        int reg_index = operands[0] & 0b00000111;
+        int value = operands[2];
+        cpu->registers[reg_index] = value;
 
         // Advance the program counter
         cpu->pc += ops;
