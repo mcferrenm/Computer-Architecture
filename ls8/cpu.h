@@ -14,7 +14,7 @@ struct cpu {
 };
 
 // ALU operations
-enum alu_op {
+enum alu_op { 
 	ALU_MUL
 	// Add more here
 };
@@ -32,6 +32,7 @@ enum alu_op {
 
 extern void cpu_load(struct cpu *cpu);
 extern void cpu_init(struct cpu *cpu);
+extern void cpu_run(struct cpu *cpu);
 extern void cpu_ram_read(struct cpu *cpu);
 extern void cpu_ram_write(struct cpu *cpu);
 

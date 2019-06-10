@@ -47,12 +47,38 @@ void cpu_run(struct cpu *cpu)
 {
   int running = 1; // True until we get a HLT instruction
 
+  unsigned char ir;
+  int operands[2];
+
   while (running) {
-    // TODO
     // 1. Get the value of the current instruction (in address PC).
+    ir = cpu_ram_read(cpu, cpu->pc);
+
     // 2. Figure out how many operands this next instruction requires
+    int op_count = strtol(ir & 0b11000000 >> 6, NULL, 2);
+
     // 3. Get the appropriate value(s) of the operands following this instruction
+    for (int i = 1; i < op_count + 1; i++) { // skip the current
+      operands[i - 1] = cpu_ram_read(cpu, cpu->pc + i);
+    }
+
     // 4. switch() over it to decide on a course of action.
+    switch(ir) {
+      case LDI:
+        // Set register at first operand to value of second operand
+        cpu->registers[strtol(operands[0], NULL, 2)] = strtol(operands[1], NULL, 2);
+
+        // Advance the program counter
+        cpu->pc += ops;
+
+        break;
+
+      default:
+        // For debugging
+				printf("Unknown instruction %02x at address %02x\n", ir, cpu->pc);
+        exit(1);
+
+    }
     // 5. Do whatever the instruction should do according to the spec.
     // 6. Move the PC to the next instruction.
   }
@@ -74,15 +100,15 @@ void cpu_init(struct cpu *cpu)
 /**
  * Read from RAM
  */
-void cpu_ram_read(struct cpu *cpu)
-{
-  // TODO
+unsigned char cpu_ram_read(struct cpu *cpu, int index)
+{ 
+  return cpu->ram[index];
 }
 
 /**
- * Wrote to RAM
+ * Write to RAM
  */
-void cpu_ram_write(struct cpu *cpu)
+void cpu_ram_write(struct cpu *cpu, unsigned char* value, int index)
 {
-  // TODO
+  cpu->ram[index] = value;
 }
