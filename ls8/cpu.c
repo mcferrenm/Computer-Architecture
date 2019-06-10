@@ -76,6 +76,19 @@ void cpu_run(struct cpu *cpu)
 
         break;
 
+      case PRN:
+        // Access register at first operand register, no second operand!  
+        int reg_index = operands[0] & 0b00000111;
+        int value = cpu->registers[reg_index];
+
+        // Print value
+        printf("%d", value);
+
+        // Advance the program counter
+        cpu->pc += ops;
+
+        break;
+
       case HLT:
         // Terminate
         running = 0;
@@ -87,8 +100,6 @@ void cpu_run(struct cpu *cpu)
         exit(1);
 
     }
-    // 5. Do whatever the instruction should do according to the spec.
-    // 6. Move the PC to the next instruction.
   }
 }
 
