@@ -73,6 +73,11 @@ void cpu_run(struct cpu *cpu)
 
         break;
 
+      case HLT:
+        // Terminate
+        running = 0;
+        break;
+
       default:
         // For debugging
 				printf("Unknown instruction %02x at address %02x\n", ir, cpu->pc);
