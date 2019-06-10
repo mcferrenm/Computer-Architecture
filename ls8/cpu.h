@@ -3,7 +3,6 @@
 
 // Holds all information about the CPU
 struct cpu {
-  // TODO
   // PC
   int pc;
   
@@ -33,6 +32,7 @@ enum alu_op {
 
 extern void cpu_load(struct cpu *cpu);
 extern void cpu_init(struct cpu *cpu);
-extern void cpu_run(struct cpu *cpu);
+extern void cpu_ram_read(struct cpu *cpu);
+extern void cpu_ram_write(struct cpu *cpu);
 
 #endif
