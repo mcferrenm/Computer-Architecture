@@ -7,7 +7,7 @@ struct cpu {
   int pc;
   
   // registers (array)
-  unsigned char registers[256];
+  unsigned char registers[8];
   
   // ram (array)
   unsigned char ram[256];
