@@ -35,7 +35,7 @@ void cpu_load(struct cpu *cpu, char *filename)
     }
     
     // load bytes into ram line by line
-    cpu->ram[address++] = v;
+    cpu_ram_write(cpu, v, address++);
   }
   // Close at EOL
   fclose(fp);
@@ -44,14 +44,29 @@ void cpu_load(struct cpu *cpu, char *filename)
 /**
  * ALU
  */
-void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB)
-{
+void alu(struct cpu *cpu, enum alu_op op, unsigned char reg_a, unsigned char reg_b)
+{ 
+  int reg_index;
+  unsigned char value;
+
   switch (op) {
     case ALU_MUL:
-      // TODO
-      break;
+      // Get index of register b
+      reg_index = reg_b & 0b00000111;
 
-    // TODO: implement more ALU ops
+      // Set to temp variable
+      value = cpu->registers[reg_index];
+
+      // Get index of register a
+      reg_index = reg_a & 0b00000111;
+
+      // Update value * value at register a
+      value = value * cpu->registers[reg_index];
+
+      // Set value to register a
+      cpu->registers[reg_index] = value;
+
+      break;
   }
 }
 
@@ -97,9 +112,17 @@ void cpu_run(struct cpu *cpu)
 
         break;
 
+      case MUL:
+        // Use alu helper function to mult operand_a and operand_b 
+        // and store result in operand_a (reg A)
+        alu(cpu, ALU_MUL, operand_a, operand_b);
+
+        break;
+
       case HLT:
         // Terminate
         running = 0;
+
         break;
 
       default:
@@ -107,7 +130,6 @@ void cpu_run(struct cpu *cpu)
 				printf("Unknown instruction %02x at address %02x\n", ir, cpu->pc);
         exit(1);
     }
-
     // Advance the program counter
     cpu->pc += op_count + 1;
   }
