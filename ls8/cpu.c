@@ -10,28 +10,35 @@
  */
 void cpu_load(struct cpu *cpu, char *filename)
 {
-
-  printf("%s\n", filename);
-
-  exit(0);
-  
-  char data[DATA_LEN] = {
-    // From print8.ls8
-    0b10000010, // LDI R0,8
-    0b00000000,
-    0b00001000,
-    0b01000111, // PRN R0
-    0b00000000,
-    0b00000001  // HLT
-  };
-
+  FILE *fp;
+  char line[1024];  
   int address = 0;
 
-  for (int i = 0; i < DATA_LEN; i++) {
-    cpu->ram[address++] = data[i];
+  // Get a file handle
+  fp = fopen(filename, "r");
+
+  // Error check for file
+  if (fp == NULL) {
+    fprintf(stderr, "file not found\n");
+    exit(1);
   }
 
-  // TODO: Replace this with something less hard-coded
+  while (fgets(line, 1024, fp) != NULL) {
+    char *endptr;
+
+    // Parse line for number, copy first non number char to endptr  
+    unsigned char v = strtoul(line, &endptr, 2);
+
+    // If the error begins at first char, then ignore it (instructions always left aligned)
+    if (endptr == line) {
+      continue;
+    }
+    
+    // load bytes into ram line by line
+    cpu->ram[address++] = v;
+  }
+  // Close at EOL
+  fclose(fp);
 }
 
 /**
