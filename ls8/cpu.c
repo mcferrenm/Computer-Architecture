@@ -57,15 +57,11 @@ void cpu_run(struct cpu *cpu)
   int op_count;
 
   while (running) {
-    // Initialize operands buffer
-    // memset(operands, 0, sizeof(operands));
-    
     // 1. Get the value of the current instruction (in address PC).
     ir = cpu_ram_read(cpu, cpu->pc);
 
     // 2. Figure out how many operands this next instruction requires
     op_count = ir >> 6;
-    // printf("PC: %d, OP_C:%d\n", cpu->pc, op_count);
 
     // 3. Get the appropriate value(s) of the operands following this instruction
     operand_a = cpu_ram_read(cpu, cpu->pc + 1);
@@ -105,7 +101,6 @@ void cpu_run(struct cpu *cpu)
         // For debugging
 				printf("Unknown instruction %02x at address %02x\n", ir, cpu->pc);
         exit(1);
-
     }
   }
 }
