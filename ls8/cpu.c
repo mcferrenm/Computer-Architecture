@@ -1,4 +1,6 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "cpu.h"
 
 #define DATA_LEN 6
@@ -49,43 +51,48 @@ void cpu_run(struct cpu *cpu)
   int running = 1; // True until we get a HLT instruction
 
   unsigned char ir;
-  int operands[2];
+  unsigned char operand_a;
+  unsigned char operand_b;
+  int reg_index;
+  int op_count;
 
   while (running) {
+    // Initialize operands buffer
+    // memset(operands, 0, sizeof(operands));
+    
     // 1. Get the value of the current instruction (in address PC).
     ir = cpu_ram_read(cpu, cpu->pc);
 
     // 2. Figure out how many operands this next instruction requires
-    int op_count = ir & 0b11000000 >> 6;
+    op_count = ir >> 6;
+    // printf("PC: %d, OP_C:%d\n", cpu->pc, op_count);
 
     // 3. Get the appropriate value(s) of the operands following this instruction
-    for (int i = 1; i < op_count + 1; i++) { // skip the current
-      operands[i - 1] = cpu_ram_read(cpu, cpu->pc + i);
-    }
+    operand_a = cpu_ram_read(cpu, cpu->pc + 1);
+    operand_b = cpu_ram_read(cpu, cpu->pc + 2);
 
     // 4. switch() over it to decide on a course of action.
     switch(ir) {
       case LDI:
         // Set register at first operand to value of second operand
-        int reg_index = operands[0] & 0b00000111;
-        int value = operands[2];
-        cpu->registers[reg_index] = value;
+        reg_index = operand_a & 0b00000111;
+        cpu->registers[reg_index] = operand_b;
 
         // Advance the program counter
-        cpu->pc += ops;
+        cpu->pc += op_count + 1;
 
         break;
 
       case PRN:
+
         // Access register at first operand register, no second operand!  
-        int reg_index = operands[0] & 0b00000111;
-        int value = cpu->registers[reg_index];
+        reg_index = operand_a & 0b00000111;
 
         // Print value
-        printf("%d", value);
+        printf("%d\n", cpu->registers[reg_index]);
 
         // Advance the program counter
-        cpu->pc += ops;
+        cpu->pc += op_count + 1;
 
         break;
 
@@ -127,7 +134,7 @@ unsigned char cpu_ram_read(struct cpu *cpu, int index)
 /**
  * Write to RAM
  */
-void cpu_ram_write(struct cpu *cpu, unsigned char* value, int index)
+void cpu_ram_write(struct cpu *cpu, unsigned char value, int index)
 {
   cpu->ram[index] = value;
 }
