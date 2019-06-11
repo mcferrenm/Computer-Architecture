@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cpu.h"
-#include "hashtable.h"
 
 #define DATA_LEN 6
 
@@ -71,6 +70,13 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char reg_a, unsigned char reg
   }
 }
 
+void handle_ldi(struct cpu *cpu, unsigned char operand_a, unsigned char operand_b)
+{
+  // Set register at first operand to value of second operand
+  int reg_index = operand_a & 0b00000111;
+  cpu->registers[reg_index] = operand_b;
+}
+
 /**
  * Run the CPU
  */
@@ -83,6 +89,9 @@ void cpu_run(struct cpu *cpu)
   unsigned char operand_b;
   int reg_index;
   int op_count;
+  void (*fp)(struct cpu*, unsigned char, unsigned char);
+
+  fp = handle_ldi;
 
   while (running) {
     // 1. Get the value of the current instruction (in address PC).
@@ -98,7 +107,8 @@ void cpu_run(struct cpu *cpu)
     // 4. switch() over it to decide on a course of action.
     switch(ir) {
       case LDI:
-        handle_ldi(cpu, operand_a, operand_b);
+        // handle_ldi(cpu, operand_a, operand_b);
+        fp(cpu, operand_a, operand_b);
 
         break;
 
@@ -134,12 +144,7 @@ void cpu_run(struct cpu *cpu)
   }
 }
 
-void handle_ldi(struct cpu *cpu, unsigned char operand_a, unsigned char operand_b)
-{
-  // Set register at first operand to value of second operand
-  int reg_index = operand_a & 0b00000111;
-  cpu->registers[reg_index] = operand_b;
-}
+
 
 /**
  * Initialize a CPU struct
@@ -152,19 +157,6 @@ void cpu_init(struct cpu *cpu)
   // Set all register and ram array bytes to 0 bits
   memset(cpu->registers, 0, sizeof(cpu->registers));
   memset(cpu->ram, 0, sizeof(cpu->ram));
-
-  // TODO - implement branchtable for helper function pointers
-  // and remove switch
-
-  // Create a BranchTable for instruction handler functions
-  // HashTable *bt = create_hash_table(16);
-
-  // Pointer to handle_ldi()
-  // void (*fp)(struct cpu, unsigned char, unsigned char);
-
-  // fp = handle_ldi;
-
-  // hash_table_insert(bt, LDI, &fp);
 }
 
 /**
