@@ -8,8 +8,13 @@
 /**
  * Load the binary bytes from a .ls8 source file into a RAM array
  */
-void cpu_load(struct cpu *cpu)
+void cpu_load(struct cpu *cpu, char *filename)
 {
+
+  printf("%s\n", filename);
+
+  exit(0);
+  
   char data[DATA_LEN] = {
     // From print8.ls8
     0b10000010, // LDI R0,8
