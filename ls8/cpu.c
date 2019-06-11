@@ -74,21 +74,14 @@ void cpu_run(struct cpu *cpu)
         reg_index = operand_a & 0b00000111;
         cpu->registers[reg_index] = operand_b;
 
-        // Advance the program counter
-        cpu->pc += op_count + 1;
-
         break;
 
       case PRN:
-
         // Access register at first operand register, no second operand!  
         reg_index = operand_a & 0b00000111;
 
         // Print value
         printf("%d\n", cpu->registers[reg_index]);
-
-        // Advance the program counter
-        cpu->pc += op_count + 1;
 
         break;
 
@@ -102,6 +95,9 @@ void cpu_run(struct cpu *cpu)
 				printf("Unknown instruction %02x at address %02x\n", ir, cpu->pc);
         exit(1);
     }
+
+    // Advance the program counter
+    cpu->pc += op_count + 1;
   }
 }
 
