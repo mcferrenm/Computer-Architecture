@@ -89,9 +89,6 @@ void cpu_run(struct cpu *cpu)
   unsigned char operand_b;
   int reg_index;
   int op_count;
-  void (*fp)(struct cpu*, unsigned char, unsigned char);
-
-  fp = handle_ldi;
 
   while (running) {
     // 1. Get the value of the current instruction (in address PC).
@@ -107,8 +104,7 @@ void cpu_run(struct cpu *cpu)
     // 4. switch() over it to decide on a course of action.
     switch(ir) {
       case LDI:
-        // handle_ldi(cpu, operand_a, operand_b);
-        fp(cpu, operand_a, operand_b);
+        handle_ldi(cpu, operand_a, operand_b);
 
         break;
 
@@ -143,8 +139,6 @@ void cpu_run(struct cpu *cpu)
     cpu->pc += op_count + 1;
   }
 }
-
-
 
 /**
  * Initialize a CPU struct
