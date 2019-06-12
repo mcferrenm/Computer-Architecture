@@ -145,9 +145,6 @@ void cpu_run(struct cpu *cpu)
   unsigned char operand_a;
   unsigned char operand_b;
   int op_count;
-  
-  // Stack Pointer points to F4 or 244
-  cpu->registers[SP] = 244; 
 
   while (running) {
 
@@ -213,4 +210,7 @@ void cpu_init(struct cpu *cpu)
   // Set all register and ram array bytes to 0 bits
   memset(cpu->registers, 0, sizeof(cpu->registers));
   memset(cpu->ram, 0, sizeof(cpu->ram));
+
+  // Stack Pointer points to F4 or 244
+  cpu->registers[SP] = 244; 
 }
