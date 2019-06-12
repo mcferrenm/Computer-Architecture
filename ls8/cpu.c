@@ -77,6 +77,21 @@ void handle_ldi(struct cpu *cpu, unsigned char operand_a, unsigned char operand_
   cpu->registers[reg_index] = operand_b;
 }
 
+void handle_prn(struct cpu *cpu, unsigned char operand_a)
+{
+  // Access register at first operand register, no second operand!  
+  int reg_index = operand_a & 0b00000111;
+
+  // Print value
+  printf("%d\n", cpu->registers[reg_index]);
+}
+
+void handle_hlt(int *running)
+{
+  // Terminate
+  *running = 0;
+}
+
 /**
  * Run the CPU
  */
@@ -87,7 +102,6 @@ void cpu_run(struct cpu *cpu)
   unsigned char ir;
   unsigned char operand_a;
   unsigned char operand_b;
-  int reg_index;
   int op_count;
 
   while (running) {
@@ -105,29 +119,20 @@ void cpu_run(struct cpu *cpu)
     switch(ir) {
       case LDI:
         handle_ldi(cpu, operand_a, operand_b);
-
         break;
 
       case PRN:
-        // Access register at first operand register, no second operand!  
-        reg_index = operand_a & 0b00000111;
-
-        // Print value
-        printf("%d\n", cpu->registers[reg_index]);
-
+        handle_prn(cpu, operand_a);
         break;
 
       case MUL:
         // Use alu helper function to mult operand_a and operand_b 
         // and store result in operand_a (reg A)
         alu(cpu, ALU_MUL, operand_a, operand_b);
-
         break;
 
       case HLT:
-        // Terminate
-        running = 0;
-
+        handle_hlt(&running);
         break;
 
       default:
