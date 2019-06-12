@@ -4,6 +4,7 @@
 #include "cpu.h"
 
 #define DATA_LEN 6
+#define SP 7
 
 /**
  * Load the binary bytes from a .ls8 source file into a RAM array
@@ -70,6 +71,54 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char reg_a, unsigned char reg
   }
 }
 
+/**
+ * Read from RAM
+ */
+unsigned char cpu_ram_read(struct cpu *cpu, int index)
+{ 
+  return cpu->ram[index];
+}
+
+/**
+ * Write to RAM
+ */
+void cpu_ram_write(struct cpu *cpu, unsigned char value, int index)
+{
+  cpu->ram[index] = value;
+}
+
+/**
+ * Instruction Helper functions
+ */
+
+void handle_push(struct cpu *cpu, unsigned char operand_a)
+{
+  // !!!TODO HANDLE ERRORS FOR OVER/UNDER FLOWS
+  
+  // Decrement stack pointer
+  cpu->registers[SP]--;
+
+  // Grab value from register index operand_a
+  int value = cpu->registers[operand_a];
+
+  // Push value on stack
+  cpu_ram_write(cpu, value, cpu->registers[SP]);
+}
+
+void handle_pop(struct cpu *cpu, unsigned char operand_a)
+{
+  // !!!TODO HANDLE ERRORS FOR OVER/UNDER FLOWS
+
+  // Read ram from stack pointer
+  int value = cpu_ram_read(cpu, cpu->registers[SP]);
+
+  // Store value in register index operand_a
+  cpu->registers[operand_a] = value;
+
+  // Increment stack pointer
+  cpu->registers[SP]++;
+}
+
 void handle_ldi(struct cpu *cpu, unsigned char operand_a, unsigned char operand_b)
 {
   // Set register at first operand to value of second operand
@@ -92,6 +141,7 @@ void handle_hlt(int *running)
   *running = 0;
 }
 
+
 /**
  * Run the CPU
  */
@@ -103,10 +153,17 @@ void cpu_run(struct cpu *cpu)
   unsigned char operand_a;
   unsigned char operand_b;
   int op_count;
+  
+  // Stack Pointer points to F4 or 244
+  cpu->registers[SP] = 244; 
 
   while (running) {
+
     // 1. Get the value of the current instruction (in address PC).
     ir = cpu_ram_read(cpu, cpu->pc);
+
+    // Trace Debug
+    // printf("TRACE: PC#:%02X INSTR:%02X OP A:%02X OP B:%02X\n", cpu->pc, ir, cpu->ram[cpu->pc+1], cpu->ram[cpu->pc+2]);
 
     // 2. Figure out how many operands this next instruction requires
     op_count = ir >> 6;
@@ -117,6 +174,14 @@ void cpu_run(struct cpu *cpu)
 
     // 4. switch() over it to decide on a course of action.
     switch(ir) {
+      case PUSH:
+        handle_push(cpu, operand_a);
+        break;
+
+      case POP:
+        handle_pop(cpu, operand_a);  
+        break;
+
       case LDI:
         handle_ldi(cpu, operand_a, operand_b);
         break;
@@ -156,20 +221,4 @@ void cpu_init(struct cpu *cpu)
   // Set all register and ram array bytes to 0 bits
   memset(cpu->registers, 0, sizeof(cpu->registers));
   memset(cpu->ram, 0, sizeof(cpu->ram));
-}
-
-/**
- * Read from RAM
- */
-unsigned char cpu_ram_read(struct cpu *cpu, int index)
-{ 
-  return cpu->ram[index];
-}
-
-/**
- * Write to RAM
- */
-void cpu_ram_write(struct cpu *cpu, unsigned char value, int index)
-{
-  cpu->ram[index] = value;
 }
