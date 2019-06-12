@@ -45,28 +45,20 @@ void cpu_load(struct cpu *cpu, char *filename)
 /**
  * ALU
  */
-void alu(struct cpu *cpu, enum alu_op op, unsigned char reg_a, unsigned char reg_b)
+void alu(struct cpu *cpu, enum alu_op op, unsigned char operand_a, unsigned char operand_b)
 { 
-  int reg_index;
   unsigned char value;
 
   switch (op) {
     case ALU_MUL:
-      // Get index of register b
-      reg_index = reg_b & 0b00000111;
-
       // Set to temp variable
-      value = cpu->registers[reg_index];
-
-      // Get index of register a
-      reg_index = reg_a & 0b00000111;
+      value = cpu->registers[operand_b];
 
       // Update value * value at register a
-      value = value * cpu->registers[reg_index];
+      value = value * cpu->registers[operand_a];
 
       // Set value to register a
-      cpu->registers[reg_index] = value;
-
+      cpu->registers[operand_a] = value;
       break;
   }
 }
