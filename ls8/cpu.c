@@ -60,6 +60,17 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char operand_a, unsigned char
       // Set value to register a
       cpu->registers[operand_a] = value;
       break;
+    
+    case ALU_ADD:
+      // Set to temp variable
+      value = cpu->registers[operand_b];
+
+      // Update value * value at register a
+      value = value + cpu->registers[operand_a];
+
+      // Set value to register a
+      cpu->registers[operand_a] = value;
+      break;
   }
 }
 
@@ -103,7 +114,7 @@ void handle_pop(struct cpu *cpu, unsigned char operand_a)
 
   // Read ram from stack pointer
   int value = cpu_ram_read(cpu, cpu->registers[SP]);
-
+  
   // Store value in register index operand_a
   cpu->registers[operand_a] = value;
 
@@ -127,12 +138,33 @@ void handle_prn(struct cpu *cpu, unsigned char operand_a)
   printf("%d\n", cpu->registers[reg_index]);
 }
 
+void handle_call(struct cpu *cpu, unsigned char operand_a)
+{ 
+  // // Decrement stack pointer
+  cpu->registers[SP]--;
+
+  // // Push instruction directly after call onto the stack
+  cpu_ram_write(cpu, cpu->pc + 2, cpu->registers[SP]);
+
+  // Set pc to value from register index operand_a
+  cpu->pc = cpu->registers[operand_a];
+
+}
+
+void handle_ret(struct cpu *cpu)
+{
+  // Pop the instruction count from the top of the stack and store it in the pc
+  cpu->pc = cpu_ram_read(cpu, cpu->registers[SP]);
+
+  // Increment stack pointer
+  cpu->registers[SP]++;
+}
+
 void handle_hlt(int *running)
 {
   // Terminate
   *running = 0;
 }
-
 
 /**
  * Run the CPU
@@ -152,7 +184,7 @@ void cpu_run(struct cpu *cpu)
     ir = cpu_ram_read(cpu, cpu->pc);
 
     // Trace Debug
-    // printf("TRACE: PC#:%02X INSTR:%02X OP A:%02X OP B:%02X\n", cpu->pc, ir, cpu->ram[cpu->pc+1], cpu->ram[cpu->pc+2]);
+    // printf("TRACE: PC#:%d INSTR:%02X OP A:%02X OP B:%02X\n", cpu->pc, ir, cpu->ram[cpu->pc+1], cpu->ram[cpu->pc+2]);
 
     // 2. Figure out how many operands this next instruction requires
     op_count = ir >> 6;
@@ -163,6 +195,14 @@ void cpu_run(struct cpu *cpu)
 
     // 4. switch() over it to decide on a course of action.
     switch(ir) {
+      case CALL:
+        handle_call(cpu, operand_a);
+        break;
+
+      case RET:
+        handle_ret(cpu);
+        break;
+
       case PUSH:
         handle_push(cpu, operand_a);
         break;
@@ -180,9 +220,11 @@ void cpu_run(struct cpu *cpu)
         break;
 
       case MUL:
-        // Use alu helper function to mult operand_a and operand_b 
-        // and store result in operand_a (reg A)
         alu(cpu, ALU_MUL, operand_a, operand_b);
+        break;
+
+      case ADD:
+        alu(cpu, ALU_ADD, operand_a, operand_b);
         break;
 
       case HLT:
@@ -194,8 +236,10 @@ void cpu_run(struct cpu *cpu)
 				printf("Unknown instruction %02x at address %02x\n", ir, cpu->pc);
         exit(1);
     }
-    // Advance the program counter
-    cpu->pc += op_count + 1;
+    // Check if ir sets the PC directly, advance the program counter accordingly
+    if (!(ir & SETS_PC_DIRECT)) {
+      cpu->pc += op_count + 1;
+    }
   }
 }
 
