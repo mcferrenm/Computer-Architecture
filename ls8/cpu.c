@@ -203,6 +203,27 @@ void handle_jeq(struct cpu *cpu, unsigned char operand_a, int op_count)
   }
 }
 
+void handle_jne(struct cpu *cpu, unsigned char operand_a, int op_count)
+{
+  // Check if EQ flag 0b00000001 is NOT set
+  if (!(cpu->fl & 0b00000001)) {
+    
+    // Set pc to value from register index operand_a
+    cpu->pc = cpu->registers[operand_a];
+
+  } else {
+
+    // Manually set the cpu->pc
+    cpu->pc += op_count + 1;
+  }
+}
+
+void handle_jmp(struct cpu *cpu, unsigned char operand_a)
+{
+  // Set pc to value from register index operand_a
+  cpu->pc = cpu->registers[operand_a];
+}
+
 /**
  * Run the CPU
  */
@@ -221,7 +242,7 @@ void cpu_run(struct cpu *cpu)
     ir = cpu_ram_read(cpu, cpu->pc);
 
     // Trace Debug
-    // printf("TRACE: PC#:%d INSTR:%02X OP A:%02X OP B:%02X\n", cpu->pc, ir, cpu->ram[cpu->pc+1], cpu->ram[cpu->pc+2]);
+    printf("TRACE: PC#:%d INSTR:%02X OP A:%02X OP B:%02X\n", cpu->pc, ir, cpu->ram[cpu->pc+1], cpu->ram[cpu->pc+2]);
 
     // 2. Figure out how many operands this next instruction requires
     op_count = ir >> 6;
@@ -270,6 +291,20 @@ void cpu_run(struct cpu *cpu)
 
       case JEQ:
         handle_jeq(cpu, operand_a, op_count);
+        
+        // Reset the flags
+        cpu->fl = 0;
+        break;
+
+      case JNE:
+        handle_jne(cpu, operand_a, op_count);
+
+        // Reset the flags
+        cpu->fl = 0;
+        break;
+
+      case JMP:
+        handle_jmp(cpu, operand_a);
         break;
 
       case HLT:
@@ -278,7 +313,6 @@ void cpu_run(struct cpu *cpu)
 
       default:
         // For debugging
-        // printf("----%d\n", cpu->fl);
 				printf("Unknown instruction %02x at address %02x\n", ir, cpu->pc);
         exit(1);
     }
