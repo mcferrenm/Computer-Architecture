@@ -49,6 +49,8 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char operand_a, unsigned char
 { 
   unsigned char value;
 
+  // TODO Clean up cpu->registers[operand_a]
+
   switch (op) {
     case ALU_MUL:
       // Set to temp variable
@@ -70,6 +72,26 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char operand_a, unsigned char
 
       // Set value to register a
       cpu->registers[operand_a] = value;
+      break;
+    
+    case ALU_CMP:    
+      // Compare two values
+      if (cpu->registers[operand_a] == cpu->registers[operand_b]) {
+
+        // Set EQ flag 0b00000001
+        cpu->fl ^= 0b00000001;
+
+      } else if (cpu->registers[operand_a] > cpu->registers[operand_b]) {
+
+        // Set greater than flag 0b00000001
+        cpu->fl ^= 0b00000010;
+
+      } else {
+        
+        // Set less than flag 0b00000001
+        cpu->fl ^= 0b00000100;
+
+      }
       break;
   }
 }
@@ -227,12 +249,17 @@ void cpu_run(struct cpu *cpu)
         alu(cpu, ALU_ADD, operand_a, operand_b);
         break;
 
+      case CMP:
+        alu(cpu, ALU_CMP, operand_a, operand_b);
+        break;
+
       case HLT:
         handle_hlt(&running);
         break;
 
       default:
         // For debugging
+        printf("----%d\n", cpu->fl);
 				printf("Unknown instruction %02x at address %02x\n", ir, cpu->pc);
         exit(1);
     }
@@ -250,6 +277,9 @@ void cpu_init(struct cpu *cpu)
 {
   // Initialize Program Counter to 0
   cpu->pc = 0;
+  
+  // Initialize Flags to 0
+  cpu->fl = 0;
 
   // Set all register and ram array bytes to 0 bits
   memset(cpu->registers, 0, sizeof(cpu->registers));
