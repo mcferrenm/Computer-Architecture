@@ -34,6 +34,7 @@ enum alu_op {
 #define MUL  0b10100010
 #define ADD  0b10100000
 #define CMP  0b10100111
+#define JEQ  0b01010101
 #define PUSH 0b01000101
 #define POP  0b01000110
 #define CALL 0b01010000

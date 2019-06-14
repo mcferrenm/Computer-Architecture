@@ -188,6 +188,21 @@ void handle_hlt(int *running)
   *running = 0;
 }
 
+void handle_jeq(struct cpu *cpu, unsigned char operand_a, int op_count)
+{
+  // Check if EQ flag 0b00000001 is set
+  if (cpu->fl & 0b00000001) {
+    
+    // Set pc to value from register index operand_a
+    cpu->pc = cpu->registers[operand_a];
+
+  } else {
+
+    // Manually set the cpu->pc
+    cpu->pc += op_count + 1;
+  }
+}
+
 /**
  * Run the CPU
  */
@@ -253,13 +268,17 @@ void cpu_run(struct cpu *cpu)
         alu(cpu, ALU_CMP, operand_a, operand_b);
         break;
 
+      case JEQ:
+        handle_jeq(cpu, operand_a, op_count);
+        break;
+
       case HLT:
         handle_hlt(&running);
         break;
 
       default:
         // For debugging
-        printf("----%d\n", cpu->fl);
+        // printf("----%d\n", cpu->fl);
 				printf("Unknown instruction %02x at address %02x\n", ir, cpu->pc);
         exit(1);
     }
